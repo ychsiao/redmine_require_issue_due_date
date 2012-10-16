@@ -1,9 +1,16 @@
 require 'redmine'
 
-require 'dispatcher'
-Dispatcher.to_prepare :redmine_require_issue_due_date do
-  require_dependency 'issue'
-  Issue.send(:include, RedmineRequireIssueDueDate::Patches::IssuePatch)
+require 'dispatcher' unless Rails::VERSION::MAJOR >= 3
+
+if Rails::VERSION::MAJOR >= 3
+	  ActionDispatch::Callbacks.to_prepare do
+	  Issue.send(:include, RedmineRequireIssueDueDate::Patches::IssuePatch)
+	  end
+else
+	Dispatcher.to_prepare :redmine_require_issue_due_date do
+		require_dependency 'issue'
+	Issue.send(:include, RedmineRequireIssueDueDate::Patches::IssuePatch)
+	end
 end
 
 Redmine::Plugin.register :redmine_require_issue_due_date do
@@ -11,7 +18,7 @@ Redmine::Plugin.register :redmine_require_issue_due_date do
   url 'https://projects.littlestreamsoftware.com/projects/redmine-misc'
   author 'Eric Davis of Little Stream Software'
   author_url 'http://www.littlestreamsoftware.com'
-  
+
   description 'Require Issue Due Date is a plugin to require setting due dates on issues.'
   version '0.1.0'
   requires_redmine :version_or_higher => '0.8.0'
